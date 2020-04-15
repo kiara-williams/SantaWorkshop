@@ -2,15 +2,36 @@ from array_queue import ArrayQueue
 from operator import itemgetter
 
 
-def assign(queue, days, assignments, cost, choice=0):
+def assign(queue, days, assignments, cost, choice):
     instance = queue.first()
-    if instance[-1] + days(instance[choice]) > 300:
-        return assign(queue, days, assignments, cost, choice + 1)
-    else:
-        assignments.append(set(instance[0], instance[choice]))
-        queue.dequeue()
-        if choice >= 0:
-            cost += calculate_costs(choice, instance[-1])
+    try:
+        if instance[-1] + days[instance[choice]] > 125:
+            return assign(queue, days, assignments, cost, choice + 1)
+        else:
+            assigned = [instance[0], instance[choice]]
+            assignments.append(assigned)
+            cur_num = days[instance[choice]]
+            new_num = cur_num + instance[-1]
+            days[instance[choice]] = new_num
+            print(days)
+            print(assigned, instance[-1])
+            queue.dequeue()
+            if choice >= 0:
+                cost += calculate_costs(choice, instance[-1])
+    except:
+        if instance[-1] + days[instance[choice]] >= 300:
+            return assign(queue, days, assignments, cost, choice + 1)
+        else:
+            assigned = [instance[0], instance[choice]]
+            assignments.append(assigned)
+            cur_num = days[instance[choice]]
+            new_num = cur_num + instance[-1]
+            days[instance[choice]] = new_num
+            print(days)
+            print(assigned, instance[-1])
+            queue.dequeue()
+            if choice >= 0:
+                cost += calculate_costs(choice, instance[-1])
 
 
 def calculate_costs(c, p):
@@ -18,7 +39,8 @@ def calculate_costs(c, p):
         return 50
     elif 1 < c <= 4:
         return (50 * (2 ^ (c-2))) + 9 * p
-    # continue from here
+    else:
+        return 0
 
 
 def read_file(f, q):
@@ -26,11 +48,11 @@ def read_file(f, q):
     in_file = open(f, 'r')
     next(in_file)
     for line in in_file:
-        line.strip()
-        new_line = list(line.split(','))
+        new_line = [int(x) for x in line.strip().split(',')]
         temp_list.append(new_line)
     in_file.close()
-    sorted(temp_list, key=itemgetter(-1))
+    temp_list.sort(key=itemgetter(2))
+    print(temp_list)
     for item in temp_list:
         q.enqueue(item)
 
@@ -50,4 +72,9 @@ def main():
     days = {k: 0 for k in range(1, 101)}
     read_file("family_data.csv", queue)
     while len(queue) > 0:
-        assign(queue, days, assignments, cost)
+        assign(queue, days, assignments, cost, 1)
+    print(days)
+    write_file("submission_file.csv", assignments)
+
+
+main()
