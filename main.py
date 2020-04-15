@@ -29,9 +29,18 @@ def read_file(f, q):
         line.strip()
         new_line = list(line.split(','))
         temp_list.append(new_line)
+    in_file.close()
     sorted(temp_list, key=itemgetter(-1))
     for item in temp_list:
         q.enqueue(item)
+
+
+def write_file(f, a):
+    out_file = open(f, 'w')
+    for item in a:
+        line = "{}\n".format(item)
+        out_file.write(line)
+    out_file.close()
 
 
 def main():
