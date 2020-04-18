@@ -26,7 +26,6 @@ def assign(queue, days, assignments, limit, choice=2):
     cost = 0
     instance = queue.first()
     if instance[1] + days[instance[choice]] > limit:
-        # print(instance[0], choice, instance[choice], days[instance[choice]])
         return assign(queue, days, assignments, limit, choice + 1)
     else:
         assigned = [instance[0], instance[choice]]
@@ -40,12 +39,19 @@ def assign(queue, days, assignments, limit, choice=2):
 
 def calculate_costs(c, p):
     """Calculates additional costs if first choice not assigned"""
-    if c == 2:
-        return 50
-    elif 2 < c <= 5:
-        return (50 * (2 ^ (c-2))) + 9 * p
-    else:
+    choice = c-2
+    if choice == 0:
         return 0
+    elif choice == 1:
+        return 50
+    elif 2 <= choice < 5:
+        return (50 * (2 ^ (choice-2))) + 9 * p
+    elif 5 <= choice < 7:
+        return (100 * (c - 3)) + 18 * p
+    elif 7 <= choice < 9:
+        return (100 * (c - 4)) + 36 * p
+    else:
+        return 500 + (36 * p) + ((choice - 8) * 199)
 
 
 def read_file(f, q):
@@ -60,7 +66,6 @@ def read_file(f, q):
         temp_list.append(new_line)
     in_file.close()
     temp_list.sort(key=itemgetter(1), reverse=True)
-    print(temp_list)
     for item in temp_list:
         q.enqueue(item)
 
@@ -87,8 +92,6 @@ def main():
             cost += assign(queue, days, assignments, 126)
         except:
             cost += assign(queue, days, assignments, 300)
-    print(days)
-    print(min(days.values()))
     write_file("submission_file.csv", assignments)
     print(cost)
 
