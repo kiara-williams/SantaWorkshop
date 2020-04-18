@@ -48,6 +48,9 @@ class ArrayQueue:
       raise Empty('Queue is empty')
     return self._data[self._front]
 
+  def front(self):
+      return self._front
+
   def dequeue(self):
     """Remove and return the first element of the queue (i.e., FIFO).
 

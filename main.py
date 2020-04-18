@@ -2,36 +2,37 @@ from array_queue import ArrayQueue
 from operator import itemgetter
 
 
-def assign(queue, days, assignments, cost, choice):
+def initial_pass(queue, days, assignments):
+    instance = queue.dequeue()
+    first_choice = instance[2]
+    assigned = [instance[0], first_choice]
+    assignments.append(assigned)
+    days[first_choice] += instance[1]
+    while queue.front() != 0:
+        instance = queue.dequeue()
+        first_choice = instance[2]
+        if instance[1] + days[first_choice] < 150:
+            print(instance[0], instance[1], days[instance[2]])
+            assigned = [instance[0], first_choice]
+            assignments.append(assigned)
+            days[first_choice] += instance[1]
+        else:
+            queue.enqueue(instance)
+
+
+def assign(queue, days, assignments, cost, choice=2):
+    # there's issues with this. Fix.
     instance = queue.first()
-    try:
-        if instance[-1] + days[instance[choice]] > 125:
-            return assign(queue, days, assignments, cost, choice + 1)
-        else:
-            assigned = [instance[0], instance[choice]]
-            assignments.append(assigned)
-            cur_num = days[instance[choice]]
-            new_num = cur_num + instance[-1]
-            days[instance[choice]] = new_num
-            print(days)
-            print(assigned, instance[-1])
-            queue.dequeue()
-            if choice >= 0:
-                cost += calculate_costs(choice, instance[-1])
-    except:
-        if instance[-1] + days[instance[choice]] >= 300:
-            return assign(queue, days, assignments, cost, choice + 1)
-        else:
-            assigned = [instance[0], instance[choice]]
-            assignments.append(assigned)
-            cur_num = days[instance[choice]]
-            new_num = cur_num + instance[-1]
-            days[instance[choice]] = new_num
-            print(days)
-            print(assigned, instance[-1])
-            queue.dequeue()
-            if choice >= 0:
-                cost += calculate_costs(choice, instance[-1])
+    if instance[1] + days[instance[choice]] >= 300:
+        # print(instance[0], choice, instance[choice], days[instance[choice]])
+        return assign(queue, days, assignments, cost, choice + 1)
+    else:
+        assigned = [instance[0], instance[choice]]
+        assignments.append(assigned)
+        days[instance[choice]] += instance[1]
+        if choice >= 0:
+            cost += calculate_costs(choice, instance[1])
+        queue.dequeue()
 
 
 def calculate_costs(c, p):
@@ -49,9 +50,11 @@ def read_file(f, q):
     next(in_file)
     for line in in_file:
         new_line = [int(x) for x in line.strip().split(',')]
+        family_number = new_line.pop()
+        new_line.insert(1, family_number)
         temp_list.append(new_line)
     in_file.close()
-    temp_list.sort(key=itemgetter(2))
+    temp_list.sort(key=itemgetter(1), reverse=True)
     print(temp_list)
     for item in temp_list:
         q.enqueue(item)
@@ -71,8 +74,9 @@ def main():
     assignments = []
     days = {k: 0 for k in range(1, 101)}
     read_file("family_data.csv", queue)
-    while len(queue) > 0:
-        assign(queue, days, assignments, cost, 1)
+    initial_pass(queue, days, assignments)
+    while queue.is_empty() == False:
+        assign(queue, days, assignments, cost, 2)
     print(days)
     write_file("submission_file.csv", assignments)
 
