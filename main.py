@@ -76,7 +76,7 @@ def main():
     read_file("family_data.csv", queue)
     initial_pass(queue, days, assignments)
     while queue.is_empty() == False:
-        assign(queue, days, assignments, cost, 2)
+        assign(queue, days, assignments, cost, 3)
     print(days)
     write_file("submission_file.csv", assignments)
 
