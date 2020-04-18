@@ -73,8 +73,9 @@ def read_file(f, q):
 def write_file(f, a):
     """Writes day assignments to submission file"""
     out_file = open(f, 'w')
+    out_file.write("family_id,assigned_day\n")
     for item in a:
-        line = "{}\n".format(item)
+        line = "{},{}\n".format(item[0], item[1])
         out_file.write(line)
     out_file.close()
 
@@ -93,7 +94,6 @@ def main():
         except:
             cost += assign(queue, days, assignments, 300)
     write_file("submission_file.csv", assignments)
-    print(cost)
 
 
 main()
