@@ -73,6 +73,7 @@ def read_file(f, q):
 def write_file(f, a):
     """Writes day assignments to submission file"""
     out_file = open(f, 'w')
+    a.sort(key=itemgetter(0))
     out_file.write("family_id,assigned_day\n")
     for item in a:
         line = "{},{}\n".format(item[0], item[1])
