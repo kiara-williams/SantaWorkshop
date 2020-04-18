@@ -3,6 +3,8 @@ from operator import itemgetter
 
 
 def initial_pass(queue, days, assignments):
+    """Makes an initial pass over data and assigns all families to their first choice where possible.
+    Minimises the work of the recursion function"""
     instance = queue.dequeue()
     first_choice = instance[2]
     assigned = [instance[0], first_choice]
@@ -11,8 +13,7 @@ def initial_pass(queue, days, assignments):
     while queue.front() != 0:
         instance = queue.dequeue()
         first_choice = instance[2]
-        if instance[1] + days[first_choice] < 150:
-            print(instance[0], instance[1], days[instance[2]])
+        if instance[1] + days[first_choice] < 125:
             assigned = [instance[0], first_choice]
             assignments.append(assigned)
             days[first_choice] += instance[1]
@@ -20,12 +21,13 @@ def initial_pass(queue, days, assignments):
             queue.enqueue(instance)
 
 
-def assign(queue, days, assignments, cost, choice=2):
-    # there's issues with this. Fix.
+def assign(queue, days, assignments, limit, choice=2):
+    """Assigns families to days whilst observing set limits to number of people allowed"""
+    cost = 0
     instance = queue.first()
-    if instance[1] + days[instance[choice]] >= 300:
+    if instance[1] + days[instance[choice]] > limit:
         # print(instance[0], choice, instance[choice], days[instance[choice]])
-        return assign(queue, days, assignments, cost, choice + 1)
+        return assign(queue, days, assignments, limit, choice + 1)
     else:
         assigned = [instance[0], instance[choice]]
         assignments.append(assigned)
@@ -33,18 +35,21 @@ def assign(queue, days, assignments, cost, choice=2):
         if choice >= 0:
             cost += calculate_costs(choice, instance[1])
         queue.dequeue()
+        return cost
 
 
 def calculate_costs(c, p):
-    if c == 1:
+    """Calculates additional costs if first choice not assigned"""
+    if c == 2:
         return 50
-    elif 1 < c <= 4:
+    elif 2 < c <= 5:
         return (50 * (2 ^ (c-2))) + 9 * p
     else:
         return 0
 
 
 def read_file(f, q):
+    """Reads data csv, reorders data for processing, and queues data"""
     temp_list = []
     in_file = open(f, 'r')
     next(in_file)
@@ -61,6 +66,7 @@ def read_file(f, q):
 
 
 def write_file(f, a):
+    """Writes day assignments to submission file"""
     out_file = open(f, 'w')
     for item in a:
         line = "{}\n".format(item)
@@ -69,6 +75,7 @@ def write_file(f, a):
 
 
 def main():
+    """Pulls data from file, assigns days and writes to submission file"""
     queue = ArrayQueue()
     cost = 0
     assignments = []
@@ -76,9 +83,14 @@ def main():
     read_file("family_data.csv", queue)
     initial_pass(queue, days, assignments)
     while queue.is_empty() == False:
-        assign(queue, days, assignments, cost, 3)
+        try:
+            cost += assign(queue, days, assignments, 126)
+        except:
+            cost += assign(queue, days, assignments, 300)
     print(days)
+    print(min(days.values()))
     write_file("submission_file.csv", assignments)
+    print(cost)
 
 
 main()
