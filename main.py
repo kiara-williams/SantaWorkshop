@@ -1,5 +1,8 @@
 from array_queue import ArrayQueue
 from operator import itemgetter
+from time import time
+
+N = 5000
 
 
 def initial_pass(queue, days, assignments):
@@ -21,6 +24,8 @@ def initial_pass(queue, days, assignments):
             queue.enqueue(instance)
 
 
+
+
 def assign(queue, days, assignments, limit, choice=2):
     """Assigns families to days whilst observing set limits to number of people allowed"""
     cost = 0
@@ -35,6 +40,7 @@ def assign(queue, days, assignments, limit, choice=2):
             cost += calculate_costs(choice, instance[1])
         queue.dequeue()
         return cost
+
 
 
 def calculate_costs(c, p):
@@ -81,6 +87,14 @@ def write_file(f, a):
     out_file.close()
 
 
+def calc_accounting_penalty(days, start, previous):
+    if start == 0:
+        return 0
+    else:
+        penalty = (days[start]-125.0) / 400.0 * days[previous]**(0.5)
+        return penalty + calc_accounting_penalty(days, start - 1, previous - 1)
+
+
 def main():
     """Pulls data from file, assigns days and writes to submission file"""
     queue = ArrayQueue()
@@ -93,8 +107,12 @@ def main():
         try:
             cost += assign(queue, days, assignments, 126)
         except:
-            cost += assign(queue, days, assignments, 300)
+            cost += assign(queue, days, assignments, 1000)
+    day_one_penalty = (days[100]-125.0) / 400.0 * float(days[100]**(0.5))
+    cost += day_one_penalty
+    cost += calc_accounting_penalty(days, 99, 100)
     write_file("submission_file.csv", assignments)
+    print(cost)
 
 
 main()
