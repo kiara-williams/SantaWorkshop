@@ -5,42 +5,25 @@ from time import time
 N = 5000
 
 
-def initial_pass(queue, days, assignments):
+def single_pass(queue, days, assignments, choice):
     """Makes an initial pass over data and assigns all families to their first choice where possible.
     Minimises the work of the recursion function"""
+    cost = 0
     instance = queue.dequeue()
-    first_choice = instance[2]
-    assigned = [instance[0], first_choice]
+    assigned = [instance[0], instance[choice]]
     assignments.append(assigned)
-    days[first_choice] += instance[1]
+    days[instance[choice]] += instance[1]
+    cost += calculate_costs(choice, instance[1])
     while queue.front() != 0:
         instance = queue.dequeue()
-        first_choice = instance[2]
-        if instance[1] + days[first_choice] < 125:
-            assigned = [instance[0], first_choice]
+        if instance[1] + days[instance[choice]] < 300:
+            assigned = [instance[0], instance[choice]]
             assignments.append(assigned)
-            days[first_choice] += instance[1]
+            days[instance[choice]] += instance[1]
+            cost += calculate_costs(choice, instance[1])
         else:
             queue.enqueue(instance)
-
-
-
-
-def assign(queue, days, assignments, limit, choice=2):
-    """Assigns families to days whilst observing set limits to number of people allowed"""
-    cost = 0
-    instance = queue.first()
-    if instance[1] + days[instance[choice]] > limit:
-        return assign(queue, days, assignments, limit, choice + 1)
-    else:
-        assigned = [instance[0], instance[choice]]
-        assignments.append(assigned)
-        days[instance[choice]] += instance[1]
-        if choice >= 0:
-            cost += calculate_costs(choice, instance[1])
-        queue.dequeue()
-        return cost
-
+    return cost
 
 
 def calculate_costs(c, p):
@@ -95,6 +78,7 @@ def calc_accounting_penalty(days, start, previous):
         return penalty + calc_accounting_penalty(days, start - 1, previous - 1)
 
 
+
 def main():
     """Pulls data from file, assigns days and writes to submission file"""
     queue = ArrayQueue()
@@ -102,13 +86,9 @@ def main():
     assignments = []
     days = {k: 0 for k in range(1, 101)}
     read_file("family_data.csv", queue)
-    initial_pass(queue, days, assignments)
-    while queue.is_empty() == False:
-        try:
-            cost += assign(queue, days, assignments, 126)
-        except:
-            cost += assign(queue, days, assignments, 1000)
-    day_one_penalty = (days[100]-125.0) / 400.0 * float(days[100]**(0.5))
+    for i in range(2, 12):
+        cost += single_pass(queue, days, assignments, i)
+    day_one_penalty = (days[100]-125.0) / 400.0 * days[100]**(0.5)
     cost += day_one_penalty
     cost += calc_accounting_penalty(days, 99, 100)
     write_file("submission_file.csv", assignments)
