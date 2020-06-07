@@ -19,7 +19,6 @@ def single_pass(queue, days, assignments, choice):
         cost += calculate_costs(choice, instance[1])
     while queue.front() != 0:
         instance = queue.dequeue()
-        print(instance)
         if instance == None:
             pass
         elif instance[1] + days[instance[choice]] <= 300:
@@ -85,7 +84,6 @@ def read_file(f, q):
     in_file.close()
 
 
-
 def write_file(f, a):
     """Writes day assignments to submission file"""
     out_file = open(f, 'w')
@@ -98,6 +96,7 @@ def write_file(f, a):
 
 
 def calc_accounting_penalty(days, start, previous):
+    """Applies accounting penalty to day count"""
     if start == 0:
         return 0
     else:
@@ -106,6 +105,7 @@ def calc_accounting_penalty(days, start, previous):
 
 
 def sort_list(queue, i):
+    """Sorts list according to choice in ascending order"""
     temp_list = []
     while queue.is_empty == False:
         instance = queue.dequeue()
@@ -113,7 +113,6 @@ def sort_list(queue, i):
     temp_list.sort(key=itemgetter(i))
     for item in temp_list:
         queue.enqueue(item)
-
 
 
 def main():
@@ -133,7 +132,6 @@ def main():
     cost += (days[100]-125.0) / 400.0 * days[100]**(0.5)
     cost += calc_accounting_penalty(days, 99, 100)
     write_file("submission_file.csv", assignments)
-    print('')
     print('${:.2f}'.format(cost))
 
 
