@@ -6,17 +6,47 @@ N = 5000
 
 
 def single_pass(queue, days, assignments, choice):
-    """Makes an initial pass over data and assigns all families to their first choice where possible.
-    Minimises the work of the recursion function"""
+    """Makes an final pass over the data and assigns all families their preferred choice where that choice does not
+    exceed 300 people"""
     cost = 0
     instance = queue.dequeue()
-    assigned = [instance[0], instance[choice]]
-    assignments.append(assigned)
-    days[instance[choice]] += instance[1]
-    cost += calculate_costs(choice, instance[1])
+    if instance == None:
+        pass
+    else:
+        assigned = [instance[0], instance[choice]]
+        assignments.append(assigned)
+        days[instance[choice]] += instance[1]
+        cost += calculate_costs(choice, instance[1])
     while queue.front() != 0:
         instance = queue.dequeue()
-        if instance[1] + days[instance[choice]] < 300:
+        print(instance)
+        if instance == None:
+            pass
+        elif instance[1] + days[instance[choice]] <= 300:
+            assigned = [instance[0], instance[choice]]
+            assignments.append(assigned)
+            days[instance[choice]] += instance[1]
+            cost += calculate_costs(choice, instance[1])
+        else:
+            queue.enqueue(instance)
+    return cost
+
+
+def first_pass(queue, days, assignments, choice):
+    """Makes an initial pass over data and assigns all families to their first choice, where that choice has less than 125
+    people assigned to it"""
+    cost = 0
+    instance = queue.dequeue()
+    if instance[1] + days[instance[choice]] <= 126:
+        assigned = [instance[0], instance[choice]]
+        assignments.append(assigned)
+        days[instance[choice]] += instance[1]
+        cost += calculate_costs(choice, instance[1])
+    else:
+        queue.enqueue(instance)
+    while queue.front() != 0:
+        instance = queue.dequeue()
+        if instance[1] + days[instance[choice]] <= 126:
             assigned = [instance[0], instance[choice]]
             assignments.append(assigned)
             days[instance[choice]] += instance[1]
@@ -45,18 +75,15 @@ def calculate_costs(c, p):
 
 def read_file(f, q):
     """Reads data csv, reorders data for processing, and queues data"""
-    temp_list = []
     in_file = open(f, 'r')
     next(in_file)
     for line in in_file:
         new_line = [int(x) for x in line.strip().split(',')]
         family_number = new_line.pop()
         new_line.insert(1, family_number)
-        temp_list.append(new_line)
+        q.enqueue(new_line)
     in_file.close()
-    temp_list.sort(key=itemgetter(1), reverse=True)
-    for item in temp_list:
-        q.enqueue(item)
+
 
 
 def write_file(f, a):
@@ -78,6 +105,16 @@ def calc_accounting_penalty(days, start, previous):
         return penalty + calc_accounting_penalty(days, start - 1, previous - 1)
 
 
+def sort_list(queue, i):
+    temp_list = []
+    while queue.is_empty == False:
+        instance = queue.dequeue()
+        temp_list.append(instance)
+    temp_list.sort(key=itemgetter(i))
+    for item in temp_list:
+        queue.enqueue(item)
+
+
 
 def main():
     """Pulls data from file, assigns days and writes to submission file"""
@@ -87,12 +124,17 @@ def main():
     days = {k: 0 for k in range(1, 101)}
     read_file("family_data.csv", queue)
     for i in range(2, 12):
-        cost += single_pass(queue, days, assignments, i)
-    day_one_penalty = (days[100]-125.0) / 400.0 * days[100]**(0.5)
-    cost += day_one_penalty
+        sort_list(queue, i)
+        cost += first_pass(queue, days, assignments, i)
+    while queue.first() != None:
+        for i in range(2, 12):
+            sort_list(queue, i)
+            cost += single_pass(queue, days, assignments, i)
+    cost += (days[100]-125.0) / 400.0 * days[100]**(0.5)
     cost += calc_accounting_penalty(days, 99, 100)
     write_file("submission_file.csv", assignments)
-    print(cost)
+    print('')
+    print('${:.2f}'.format(cost))
 
 
 main()
